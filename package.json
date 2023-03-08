@@ -1,0 +1,15 @@
+{
+  "name": "json-prettier",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "publish": "dotnet publish -c Release src/json-prettier/json-prettier.csproj",
+    "build": "dotnet build -c Release src/json-prettier/json-prettier.csproj"
+  },
+  "author": "davydm@gmail.com",
+  "license": "BSD-3-Clause",
+  "devDependencies": {
+    "rimraf": "^4.3.1"
+  }
+}
