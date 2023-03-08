@@ -2,7 +2,19 @@
 using System.Text.Json;
 
 var didSomething = false;
-foreach (var file in args)
+var options = Options.From(args);
+if (options.ExitCode is not null)
+{
+    return options.ExitCode.Value;
+}
+
+var mutations = new List<Func<string, string>>();
+if (options.Escaped)
+{
+    mutations.Add(s => s.Replace("&", "&amp;").Replace("\"", "&quot;"));
+}
+
+foreach (var file in options.Files)
 {
     if (!File.Exists(file))
     {
@@ -15,8 +27,7 @@ foreach (var file in args)
 
 if (!Console.IsInputRedirected)
 {
-    CheckDidSomething();
-    return;
+    return CheckDidSomething();
 }
 
 using var reader = new StreamReader(Console.OpenStandardInput(), Console.InputEncoding);
@@ -29,8 +40,13 @@ void DumpPrettyJson(string json)
     {
 #pragma warning disable IL2026
         var obj = JsonSerializer.Deserialize<object>(json);
-        var prettier = JsonSerializer.Serialize(obj, new JsonSerializerOptions() { WriteIndented = true } );
+        var prettier = JsonSerializer.Serialize(obj, options.SerializerOptions);
 #pragma warning restore IL2026
+        foreach (var mutation in mutations)
+        {
+            prettier = mutation(prettier);
+        }
+
         Console.WriteLine(prettier);
         didSomething = true;
     }
@@ -40,10 +56,14 @@ void DumpPrettyJson(string json)
     }
 }
 
-void CheckDidSomething()
+return 0;
+
+int CheckDidSomething()
 {
     if (!didSomething)
     {
         Console.Error.WriteLine("Please specify at least one file on the commandline or pipe json into my stdin");
+        return 1;
     }
+    return 0;
 }
